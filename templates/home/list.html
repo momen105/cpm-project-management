@@ -1,0 +1,74 @@
+<!-- templates/task_details.html -->
+{% extends 'base.html' %}
+
+{% block component %}
+<h3 class="mb-3">Task Details</h3>
+
+<div class="">
+  <table class="task-list shadow-lg">
+    <thead class="table-light">
+      <tr>
+        <th>Task Activity</th>
+        <th>Description</th>
+        <th>Immediate Predecessor</th>
+        <th>Duration (days)</th>
+        <th>Start date</th>
+        <th>Finish date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>A</td><td>Confirm lead speaker & topic</td><td>–</td><td>10</td><td>01/10/2024</td><td>10/10/2024</td></tr>
+      <tr><td>B</td><td>Prepare brochure</td><td>A</td><td>15</td><td>11/10/2024</td><td>25/10/2024</td></tr>
+      <tr><td>C</td><td>Send letters to speakers</td><td>A</td><td>3</td><td>26/10/2024</td><td>28/10/2024</td></tr>
+      <tr><td>D</td><td>Get confirmation from speakers</td><td>B</td><td>8</td><td>29/10/2024</td><td>05/11/2024</td></tr>
+      <tr><td>E</td><td>Send letters to participants</td><td>B</td><td>7</td><td>06/11/2024</td><td>12/11/2024</td></tr>
+      <tr><td>F</td><td>Obtain travel plans from speakers</td><td>C</td><td>6</td><td>13/11/2024</td><td>18/11/2024</td></tr>
+      <tr><td>G</td><td>Arrange for accommodation for speakers</td><td>D, E</td><td>10</td><td>19/11/2024</td><td>28/11/2024</td></tr>
+      <tr><td>H</td><td>Get handouts from speakers</td><td>E, F</td><td>15</td><td>29/11/2024</td><td>13/12/2024</td></tr>
+      <tr><td>I</td><td>Finalize registrations</td><td>G, H</td><td>5</td><td>14/12/2024</td><td>18/12/2024</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<button class="btn btn-primary mt-3">+ Add Data</button>
+
+
+<h4 class="mt-5">Network Diagram</h4>
+<div id="mermaid-diagram" class="mermaid">
+  Loading...
+</div>
+<!-- Task Details Modal -->
+<div id="node-popup" style="position: absolute; display: none; z-index: 1000;" class="card shadow-sm p-3 bg-white rounded border">
+  <h6 id="popup-title" class="mb-2">Task Title</h6>
+  <p id="popup-desc" class="mb-1 text-muted" style="font-size: 0.9em;"></p>
+  <p class="mb-0"><strong>Duration:</strong> <span id="popup-duration"></span></p>
+</div>
+
+<br>
+<h4>Project Schedule Diagram</h4>
+<div class="mermaid">
+  <div id="diagram" ></div>
+
+</div>
+<div id="psd-popup" style="border-radius: 5px; display:none; position:absolute; background:#fff; padding:10px; border:1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.2); z-index:1000;">
+  <h4 id="psdpopup-title"></h4>
+  <p id="psdpopup-desc"></p>
+  <p id="psdpopup-duration"></p>
+</div>
+
+<br>
+<h4>Critical Path <span style="font-size: 10px;">(critical path nodes have no slack)</span></h4>
+<div  class="mermaid">
+  <div id="critical-path">
+
+  </div>
+</div>
+
+<br>
+<h4>Tabular Form</h4>
+
+
+
+
+
+{% endblock %}

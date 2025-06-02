@@ -1,27 +1,19 @@
 from pathlib import Path
-import environ
 import os
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Take environment variables from a .env file
-environ.Env.read_env(env_file=os.path.join(BASE_DIR, '.env'))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
-DEBUG = env('DEBUG', default=False)
-
+SECRET_KEY = 'django-insecure-ek(2iifve+d998ujs7hry$&cc%w_!=gxciu$j*7fe$%ckwc-wd'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -33,8 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
-    'core',
+    'home'
 ]
 
 MIDDLEWARE = [
@@ -47,13 +38,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'project_core.urls'
-TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+ROOT_URLCONF = 'cpm.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [TEMPLATES_DIR],
+        'DIRS': [os.path.join(BASE_DIR, "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -65,35 +55,18 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'project_core.wsgi.application'
+WSGI_APPLICATION = 'cpm.wsgi.application'
 
-CORS_ORIGIN_ALLOW_ALL = True
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-PRODUCTION = env('PRODUCTION', default=False)
-
-if PRODUCTION:
-    DATABASES ={
-        "default": {
-            "ENGINE"  : "django.db.backends.postgresql",
-            "NAME"    : env('DB_NAME'),      
-            "USER"    : env('DB_USER'),           
-            "PASSWORD": env('DB_PASS'),           
-            "HOST"    : env('DB_HOST'),
-            "PORT"    : env('DB_PORT'),
-
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-
+}
 
 
 # Password validation
@@ -130,20 +103,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# URL to access static files
 STATIC_URL = '/static/'
 
 # Additional directories where static files can be found (for development)
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # If you have a 'static' folder in your project
+    os.path.join(BASE_DIR, 'static'),
 ]
-
-
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
