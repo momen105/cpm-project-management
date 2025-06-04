@@ -39,8 +39,10 @@
     border-collapse: separate;
     border-spacing: 0;
     border: 1px solid #dee2e6;
-    border-radius: 12px;
+    border-radius: 10px;
     overflow: hidden;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    width: 100%;
   }
 
   .task-list thead tr:first-child th:first-child {
@@ -217,6 +219,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leader-line@1.0.7/leader-line.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <!----------------------- Network Diagram ----------------------->
 <script type="module">
@@ -511,5 +516,76 @@
 </script>
 
 
+<!-- ---------------------------Gantt Chart--------------------------->
+
+<script>
+  const data = {
+  labels: [
+    'Confirm lead speaker & topic',
+    'Prepare brochure',
+    'Send letters to speakers',
+    'Get confirmation from speaker',
+    'Send Letters to participants',
+    'Obtain travel plans for speaker',
+    'Arrange for accommodation for speakers',
+    'Get handouts from speakers',
+    'Finalize registrations'
+  ],
+  datasets: [{
+    label: 'Tasks',
+    data: [
+      { x: [0, 8], y: 'Confirm lead speaker & topic' },
+      { x: [8, 24], y: 'Prepare brochure' },
+      { x: [26, 40], y: 'Send letters to speakers' },
+      { x: [40, 48], y: 'Get confirmation from speaker' },
+      { x: [48, 54], y: 'Send Letters to participants' },
+      { x: [54, 64], y: 'Obtain travel plans for speaker' },
+      { x: [64, 80], y: 'Arrange for accommodation for speakers' },
+      { x: [80, 88], y: 'Get handouts from speakers' },
+      { x: [88, 96], y: 'Finalize registrations' }
+    ],
+    backgroundColor: 'rgb(71, 145, 219)',
+    borderColor: 'rgb(71, 145, 219)',
+    borderWidth: 1,
+    barThickness: 20
+  }]
+};
+
+const config = {
+  type: 'bar',
+  data: data,
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+     
+    },
+    scales: {
+      x: {
+        position: 'top',  // ✅ This puts the x-axis values at the top
+        min: 0,
+        max: 100,
+        ticks: {
+          stepSize: 4 
+        },
+        grid: {
+          color: '#bbdefb',
+          
+        }
+      },
+      y: {
+        grid: {
+          display: false
+        }
+      }
+    }
+    
+  },
+};
+
+const ctx = document.getElementById('ganttChart');
+new Chart(ctx, config);
+</script>
 </body>
 </html>
