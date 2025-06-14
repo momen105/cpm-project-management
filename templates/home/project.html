@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block component %}
+<div class="d-flex justify-content-between">
+    <h3 class="m-3">Task Details</h3>
+    <button type="button" class="btn  m-3 custom-button" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+        + Add Data
+    </button>
+</div>
+
+<div class="">
+  <table class="task-list ">
+    <thead class="table-light">
+      <tr>
+        <th>ID</th>
+        <th>Project Name</th>
+        <th>Created date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+        {% for item in data %}
+        <tr>
+
+            <td>{{item.id}}</td>
+            <td>{{item.name}}</td>
+            <td>{{item.created_at}}</td>
+            <td >
+                <a class="action-button" href="{% url 'project_details' id=item.id %}"><i class="fa-regular fa-eye"></i></a>
+                <a class="action-button" href="{% url 'project_list' %}?id={{ item.id }}"><i class="fa-solid fa-trash"></i></a>
+                <a class="action-button" href="{% url 'project_list' %}?id={{ item.id }}"><i class="fa-solid fa-pen-to-square"></i></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" >
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addProjectModalLabel">New Project</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label for="Name" class="form-label">Name</label>
+            <textarea class="form-control" id="Name" name="name" rows="2" required></textarea>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Add Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock component %}
+

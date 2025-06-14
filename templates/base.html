@@ -15,6 +15,8 @@
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
+  <!-- Include jQuery and Select2 (head tag or before closing </body>) -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 
   <style>
@@ -175,7 +177,45 @@
     color: #d33;
   }
 
-      
+  /* -------------------------project list --------------------------------- */
+  .custom-button{
+    border-radius: 8px;
+    background-color: #1565c0;
+    color: white;
+
+  }
+  .custom-button:hover{
+    border: 2px solid #1565c0;
+    background-color: #E3F2FD;
+    color: #1565c0;
+    border-radius: 8px;
+
+  }
+  .action-button{
+    padding: 5px;
+    font-size: 12px;
+    border: 1px solid #1565c0;
+    border-radius: 8px;
+    color: #1565c0;
+  }
+  .action-button:hover{
+    padding: 5px;
+    font-size: 12px;
+    border-radius: 8px;
+    background-color: #1565c0;
+    color: white;
+
+  }
+
+    .select2-container {
+      z-index: 9999 !important;
+    }
+    .select2-dropdown {
+      z-index: 9999 !important;
+    }
+    .select2-container--default .select2-selection--multiple{
+     width: 220px;
+    }
   </style>
 </head>
 <body>
@@ -186,9 +226,19 @@
     <a class="navbar-brand" href="#">CPM</a>
     <div class="collapse navbar-collapse">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Projects</a></li>
-        <li class="nav-item"><a class="nav-link active" href="#">Single Phase Project 01</a></li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'project_list' %}active{% endif %}" 
+            href="{% url 'project_list' %}">
+            Projects
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link disabled {% if request.resolver_match.url_name == 'project_details' %}active{% endif %}" 
+            href="{% url 'project_details' id=item.id|default:0   %}">
+            Single Phase Project {{project.name}}           
+          </a>
+        </li>
       </ul>
       <div class="d-flex align-items-center">
     <div class="dropdown">
@@ -214,6 +264,7 @@
   {% block component %}{% endblock %}
 </div>
 
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
@@ -221,6 +272,10 @@
 <script src="https://cdn.jsdelivr.net/npm/leader-line@1.0.7/leader-line.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 
 
 <!----------------------- Network Diagram ----------------------->
@@ -586,6 +641,17 @@ const config = {
 
 const ctx = document.getElementById('ganttChart');
 new Chart(ctx, config);
+</script>
+
+
+
+<script>
+  $(document).ready(function() {
+    $('#Predecessors').select2({
+      placeholder: "Select predecessors",
+      allowClear: true
+    });
+  });
 </script>
 </body>
 </html>
