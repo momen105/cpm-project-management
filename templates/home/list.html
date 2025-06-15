@@ -37,7 +37,7 @@
 
 
 <h4 class="mt-5">Network Diagram</h4>
-<div id="mermaid-diagram" class="mermaid">
+<div id="mermaid-diagram" class="network-mermaid">
   Loading...
 </div>
 <!-- Task Details Modal -->
@@ -140,4 +140,359 @@
 </div>
 
 
+{% endblock %}
+
+{% block script %}
+
+
+
+<!----------------------- Network Diagram ----------------------->
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  const projectId = "{{ project.id }}";
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    
+    const res = await fetch(`/network-diagram/${projectId}/`);
+    const data = await res.json();
+   
+    mermaid.initialize({ startOnLoad: false });
+
+    const el = document.getElementById("mermaid-diagram");
+    el.innerHTML = data.diagram;
+  
+    await mermaid.run({ nodes: [el] }); 
+    setTimeout(addNodeClickHandlers, 100);
+    
+    function addNodeClickHandlers() {
+    const nodeData = data.nodes
+    const popup = document.getElementById("node-popup");
+    
+    document.querySelectorAll("#mermaid-diagram .node").forEach(node => {
+      node.style.cursor = 'pointer';
+      node.addEventListener("click", event => {
+        const dataId = node.getAttribute("data-id");
+        const data = nodeData[dataId];
+  
+        if (data) {
+          // Fill popup
+          document.getElementById("popup-title").innerText = data.title;
+          document.getElementById("popup-desc").innerText = `Depends on: ${data.description}`;
+          document.getElementById("popup-duration").innerText = data.duration;
+  
+          // Position near the click
+          const rect = node.getBoundingClientRect();
+          popup.style.top = `${rect.top + window.scrollY + 20}px`;
+          popup.style.left = `${rect.left + window.scrollX + 20}px`;
+  
+          // Show popup
+          popup.style.display = "block";
+        }
+      });
+    });
+  
+    // Optional: Hide the popup if user clicks outside
+    document.addEventListener("click", function (event) {
+      if (!document.getElementById("node-popup").contains(event.target) &&
+          !event.target.closest(".node")) {
+        popup.style.display = "none";
+      }
+    });
+      
+    }
+  });
+  
+
+  
+</script>
+
+
+<!--------------------- Project Schedule Diagram ---------------->
+<script>
+
+  
+  // Sample API data with positions (you can adjust positions or calculate dynamically)
+    const activities = [
+      { id: 'A', name: 'A', es: 0, ef: 10, ls: 0, lf: 10, slack: 0, duration: 10, critical: true },
+      { id: 'B', name: 'B', es: 10, ef: 25, ls: 10, lf: 25, slack: 0, duration: 15, critical: true },
+      { id: 'C', name: 'C', es: 10, ef: 13, ls: 23, lf: 26, slack: 13, duration: 3, critical: false },
+      { id: 'D', name: 'D', es: 25, ef: 33, ls: 29, lf: 37, slack: 4, duration: 8, critical: false },
+      { id: 'E', name: 'E', es: 25, ef: 32, ls: 25, lf: 32, slack: 0, duration: 7, critical: true },
+      { id: 'F', name: 'F', es: 13, ef: 19, ls: 26, lf: 32, slack: 13, duration: 6, critical: false },
+      { id: 'G', name: 'G', es: 33, ef: 43, ls: 37, lf: 47, slack: 4, duration: 10, critical: false },
+      { id: 'H', name: 'H', es: 32, ef: 47, ls: 32, lf: 47, slack: 0, duration: 15, critical: true },
+      { id: 'I', name: 'I', es: 47, ef: 52, ls: 47, lf: 52, slack: 0, duration: 5, critical: true },
+    ];
+
+  // Connections between activities (from -> to)
+  const connections = [
+    ['A', 'B'],
+    ['A', 'C'],
+    ['B', 'D'],
+    ['B', 'E'],
+    ['C', 'F'],
+    ['D', 'G'],
+    ['E', 'G'],
+    ['F', 'H'],
+    ['G', 'I'],
+    ['H', 'I'],
+  ];
+
+
+  const diagram = document.getElementById('diagram');
+
+    // Create a dagre graph
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({
+      rankdir: 'LR', // Left to Right layout
+      marginx: 20,
+      marginy: 20,
+    });
+    g.setDefaultEdgeLabel(() => ({}));
+
+    // Add nodes with width & height
+    activities.forEach(({ id }) => {
+      g.setNode(id, { width: 100, height: 80 });
+    });
+
+    // Add edges
+    connections.forEach(([fromId, toId]) => {
+      g.setEdge(fromId, toId);
+   
+    });
+
+    // Compute the layout
+    dagre.layout(g);
+
+    // Assign x,y from dagre to activities
+    activities.forEach(act => {
+      const node = g.node(act.id);
+      act.x = node.x - 50; // center x minus half width
+      act.y = node.y - 40; // center y minus half height
+    });
+
+  // Render activity boxes
+  activities.forEach(({ id, name, es, ef, ls, lf, slack, critical, x, y }) => {
+    const box = document.createElement('div');
+    box.className = 'activity-box' + (critical ? ' critical' : '');
+    box.style.left = x + 'px';
+    box.style.top = y + 'px';
+    box.id =  id;
+
+    box.innerHTML = `
+      <div class="blue-text">${es}</div>
+      <div class="activity-name">${name}</div>
+      <div class="blue-text">${ef}</div>
+      <div>${ls}</div>
+      <div>${lf}</div>
+    `;
+    
+  diagram.appendChild(box);
+
+
+  window.onload = function () {
+      
+
+  connections.forEach(([fromId, toId]) => {
+        const from = document.getElementById(fromId);
+        const to = document.getElementById(toId);
+        if (from && to) {
+          new LeaderLine(from, to, {
+              color: 'orange',
+              size: 2,
+              startSocketGravity: [0, 0],
+              endSocketGravity: [0, 0],
+              endPlug: 'arrow3',
+              path: 'fluid',
+              dash: { animation: true }
+          });
+        } else {
+          console.warn(`Missing element: ${fromId} or ${toId}`);
+        }
+      });
+
+   
+   
+  setTimeout(() => {
+    document.querySelectorAll('svg.leader-line').forEach((svg) => {
+      ['top'].forEach((prop) => {
+        const value = parseFloat(svg.style[prop]);
+        if (!isNaN(value)) {
+          svg.style[prop] = `${value * 1.03}px`;
+        }
+      });
+    });
+  }, 100); 
+};
+
+});
+
+
+  const psdpopup = document.getElementById("psd-popup");
+
+  function addPsdNodeHoverHandlers() {
+    const nodeData = {
+      A: { title: "Confirm lead speaker & topic", description: "–", duration: "10 days" },
+      B: { title: "Prepare brochure", description: "A", duration: "15 days" },
+      C: { title: "Send letters to speakers", description: "A", duration: "3 days" },
+      D: { title: "Get confirmation from speakers", description: "B", duration: "8 days" },
+      E: { title: "Send letters to participants", description: "B", duration: "7 days" },
+      F: { title: "Obtain travel plans from speakers", description: "C", duration: "6 days" },
+      G: { title: "Arrange for accommodation for speakers", description: "D, E", duration: "10 days" },
+      H: { title: "Get handouts from speakers", description: "E, F", duration: "15 days" },
+      I: { title: "Finalize registrations", description: "G, H", duration: "5 days" },
+    };
+
+    document.querySelectorAll("#diagram .activity-box").forEach(node => {
+      node.style.cursor = 'pointer';
+
+      node.addEventListener("mouseover", event => {
+        const dataId = node.id;
+        const data = nodeData[dataId];
+        
+        if (data) {
+          console.log(data.title)
+          document.getElementById("psdpopup-title").innerText = data.title;
+          document.getElementById("psdpopup-desc").innerText = `Depends on: ${data.description}`;
+          document.getElementById("psdpopup-duration").innerText = data.duration;
+
+          const rect = node.getBoundingClientRect();
+          psdpopup.style.top = `${rect.top + window.scrollY + 20}px`;
+          psdpopup.style.left = `${rect.left + window.scrollX + 20}px`;
+          psdpopup.style.display = "block";
+        }
+      });
+
+      node.addEventListener("mouseout", () => {
+        psdpopup.style.display = "none";
+      });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", addPsdNodeHoverHandlers);
+</script>
+
+
+
+<!--------------- Critical Path ---------------------------------->
+<script>
+ 
+  const CriticalPath = ['A', 'B', 'E', 'H', 'I'];
+  const duration = "52 days";
+  const container = document.getElementById("critical-path");
+
+  CriticalPath.forEach((letter, index) => {
+    // Create span for the letter
+    const span = document.createElement("span");
+    span.textContent = letter;
+    span.style.color = "darkred";
+    span.style.fontSize = "30px"; 
+    span.style.fontWeight = "bold";
+    span.style.margin = "0 5px";
+    container.appendChild(span);
+
+    // Add arrow if not the last letter
+    if (index < CriticalPath.length - 1) {
+      const arrow = document.createElement("span");
+      arrow.textContent = "→";
+      arrow.style.color = "darkred";
+      arrow.style.fontSize = "40px"; 
+      arrow.style.margin = "0 5px";
+      container.appendChild(arrow);
+    }
+  });
+  const durationSpan = document.createElement("span");
+  durationSpan.textContent = `(${duration})`;
+  durationSpan.style.color = "gray";
+  durationSpan.style.marginLeft = "10px";
+  durationSpan.style.fontWeight = "bold";
+  container.appendChild(durationSpan);
+    
+
+
+</script>
+
+
+<!-- ---------------------------Gantt Chart--------------------------->
+
+<script>
+  const data = {
+  labels: [
+    'Confirm lead speaker & topic',
+    'Prepare brochure',
+    'Send letters to speakers',
+    'Get confirmation from speaker',
+    'Send Letters to participants',
+    'Obtain travel plans for speaker',
+    'Arrange for accommodation for speakers',
+    'Get handouts from speakers',
+    'Finalize registrations'
+  ],
+  datasets: [{
+    label: 'Tasks',
+    data: [
+      { x: [0, 8], y: 'Confirm lead speaker & topic' },
+      { x: [8, 24], y: 'Prepare brochure' },
+      { x: [26, 40], y: 'Send letters to speakers' },
+      { x: [40, 48], y: 'Get confirmation from speaker' },
+      { x: [48, 54], y: 'Send Letters to participants' },
+      { x: [54, 64], y: 'Obtain travel plans for speaker' },
+      { x: [64, 80], y: 'Arrange for accommodation for speakers' },
+      { x: [80, 88], y: 'Get handouts from speakers' },
+      { x: [88, 96], y: 'Finalize registrations' }
+    ],
+    backgroundColor: 'rgb(71, 145, 219)',
+    borderColor: 'rgb(71, 145, 219)',
+    borderWidth: 1,
+    barThickness: 20
+  }]
+};
+
+const config = {
+  type: 'bar',
+  data: data,
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+     
+    },
+    scales: {
+      x: {
+        position: 'top',  // ✅ This puts the x-axis values at the top
+        min: 0,
+        max: 100,
+        ticks: {
+          stepSize: 4 
+        },
+        grid: {
+          color: '#bbdefb',
+          
+        }
+      },
+      y: {
+        grid: {
+          display: false
+        }
+      }
+    }
+    
+  },
+};
+
+const ctx = document.getElementById('ganttChart');
+new Chart(ctx, config);
+</script>
+
+
+
+<script>
+  $(document).ready(function() {
+    $('#Predecessors').select2({
+      placeholder: "Select predecessors",
+      allowClear: true
+    });
+  });
+</script>
 {% endblock %}

@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect,get_object_or_404
 from .models import Task
 from .forms import *
 from django.http import JsonResponse
-
+from home.diagram import *
 class ProjectDetailsView(View):
     def get(self, request, id):
         project = get_object_or_404(ProjectModel, pk=id)
@@ -14,7 +14,6 @@ class ProjectDetailsView(View):
     def  post(self, request, *args, **kwargs):
         project_id = kwargs.get('id')
         data = request.POST.copy()
-        print(data)
         data['project'] = project_id
         if data.get("predecessors") == "":
             data.pop("predecessors")
@@ -47,4 +46,14 @@ def task_data(request):
         "name": "Sample Task",
         "description": "Example description",
         "duration": "5 days"
+    })
+
+
+
+def get_network_diagram(request, project_id):
+    diagram, node_data = generate_network_diagram(project_id)
+    print(diagram)
+    return JsonResponse({
+        "diagram": diagram,
+        "nodes": node_data
     })
