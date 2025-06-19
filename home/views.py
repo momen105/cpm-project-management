@@ -51,9 +51,22 @@ def task_data(request):
 
 
 def get_network_diagram(request, project_id):
+
     diagram, node_data = generate_network_diagram(project_id)
-    print(diagram)
+
     return JsonResponse({
         "diagram": diagram,
         "nodes": node_data
+    })
+
+def get_generate_Schedule_Diagram(request, project_id):
+
+    activities,connections,critical_path_duration, critical_tasks,node_data = generate_Schedule_Diagram(project_id)
+
+    return JsonResponse({
+        "activities": activities,
+        "connections": connections,
+        "critical_path_duration":critical_path_duration,
+        "critical_tasks":critical_tasks,
+        "node_data":node_data
     })

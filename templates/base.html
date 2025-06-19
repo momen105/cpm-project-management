@@ -67,11 +67,15 @@
   }
     
   .mermaid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     text-align: center;
     background: #fff;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 8px rgba(0,0,0,0.1);
+   
   }
   .network-mermaid {
     display: flex;
@@ -144,7 +148,7 @@
   #diagram {
     position: relative;
     width: 80%;
-    min-height: 400px;
+    /* min-height: 500px; */
     margin: auto;
     background: white;
     /* border: 1px solid #ccc; */
@@ -173,12 +177,15 @@
     background: #ffecec;
     color: #a00;
     font-weight: bold;
+
     
   }
+
   .blue-text {
     color: #1565c0;
     padding: 4px;
     font-size: 13px;
+    border-bottom: 1px solid #ccc;
   }
   .activity-name {
     grid-column: 2;
@@ -187,9 +194,14 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: #d33;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    
   }
-
+.activity-box.critical.activity-name{
+    border-left: 1px solid #d33 !important;
+    border-right: 1px solid #d33 !important;
+}
   /* -------------------------project list --------------------------------- */
   .custom-button{
     border-radius: 8px;
