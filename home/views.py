@@ -9,7 +9,8 @@ class ProjectDetailsView(View):
         project = get_object_or_404(ProjectModel, pk=id)
         form = TaskForm(instance=project)
         tasks = Task.objects.filter(project=project)
-        return render(request, 'home/list.html', {'form': form, 'project': project,'tasks':tasks})
+        activities = generate_Schedule_Diagram(id)
+        return render(request, 'home/list.html', {'form': form, 'project': project,'tasks':tasks,'activities':activities[0]})
 
     def  post(self, request, *args, **kwargs):
         project_id = kwargs.get('id')
@@ -62,11 +63,20 @@ def get_network_diagram(request, project_id):
 def get_generate_Schedule_Diagram(request, project_id):
 
     activities,connections,critical_path_duration, critical_tasks,node_data = generate_Schedule_Diagram(project_id)
-
+ 
     return JsonResponse({
         "activities": activities,
         "connections": connections,
         "critical_path_duration":critical_path_duration,
         "critical_tasks":critical_tasks,
         "node_data":node_data
+    })
+
+def get_gantt_chart_data(request, project_id):
+
+    labels,data = gantt_chart_data(project_id)
+
+    return JsonResponse({
+        "labels": labels,
+        "data": data
     })

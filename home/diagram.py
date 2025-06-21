@@ -69,6 +69,7 @@ def generate_Schedule_Diagram(project_id):
             "id": task_id,
             "name": task.name.strip(),
             "duration": task.duration,
+            "description": task.description,
             "es": 0, "ef": 0, "ls": 0, "lf": 0,
             "slack": 0, "critical": False,
         }
@@ -161,11 +162,65 @@ def generate_Schedule_Diagram(project_id):
     
     critical_path_duration = task_map["End"]["ef"]
 
-    print
-
+  
     # Optional: Get sorted critical tasks
     critical_tasks = sorted(
         [task["id"] for task in activities if task["critical"] and task["id"] != "End"],
         key=lambda tid: task_map[tid]["es"]
     )
     return activities, connections,critical_path_duration, critical_tasks,node_data
+
+
+
+def gantt_chart_data(project_id):
+    tasks = Task.objects.filter(project_id=project_id).prefetch_related('predecessors')
+
+    task_map = {}
+    predecessors = defaultdict(list)
+    successors = defaultdict(list)
+
+    for task in tasks:
+        task_id = task.name.strip()
+        task_map[task_id] = {
+            "id": task_id,
+            "name": task.description.strip(),
+            "duration": task.duration,
+            "es": 0, "ef": 0
+        }
+
+    for task in tasks:
+        task_id = task.name.strip()
+        for pred in task.predecessors.all():
+            pred_id = pred.name.strip()
+            predecessors[task_id].append(pred_id)
+            successors[pred_id].append(task_id)
+
+    def forward_pass():
+        visited = set()
+        def dfs(node):
+            if node in visited:
+                return
+            visited.add(node)
+            es = 0
+            for pred in predecessors[node]:
+                dfs(pred)
+                es = max(es, task_map[pred]["ef"])
+            task_map[node]["es"] = es
+            task_map[node]["ef"] = es + task_map[node]["duration"]
+        for task_id in task_map:
+            dfs(task_id)
+
+    forward_pass()
+
+    # Now convert to Chart.js format
+    labels = []
+    data = []
+    
+    for task in task_map.values():
+        labels.append(task["name"])
+        data.append({
+            "x": [task["es"], task["ef"]],
+            "y": task["name"]
+        })
+
+    return labels, data

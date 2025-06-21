@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between">
     <h3 class="m-3">Task Details</h3>
     <button type="button" class="btn  m-3 custom-button" data-bs-toggle="modal" data-bs-target="#addProjectModal">
-        + Add Data
+        + Add Project
     </button>
 </div>
 
@@ -27,8 +27,8 @@
             <td>{{item.created_at}}</td>
             <td >
                 <a class="action-button" href="{% url 'project_details' id=item.id %}"><i class="fa-regular fa-eye"></i></a>
-                <a class="action-button" href="{% url 'project_list' %}?id={{ item.id }}"><i class="fa-solid fa-trash"></i></a>
-                <a class="action-button" href="{% url 'project_list' %}?id={{ item.id }}"><i class="fa-solid fa-pen-to-square"></i></a>
+                <!-- <a class="action-button" href="{% url 'project_list' %}?id={{ item.id }}"><i class="fa-solid fa-trash"></i></a>
+                <a class="action-button" href="{% url 'project_list' %}?id={{ item.id }}"><i class="fa-solid fa-pen-to-square"></i></a> -->
             </td>
         </tr>
         {% endfor %}

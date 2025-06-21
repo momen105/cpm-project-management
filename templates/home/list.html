@@ -49,8 +49,8 @@
 
 <br>
 <h4>Project Schedule Diagram</h4>
-<div class="mermaid">
-  <div id="diagram"></div>
+<div class="mermaid-schedule">
+  <div id="scheduleDiagram"></div>
 
 </div>
 <div id="psd-popup" style="border-radius: 5px; display:none; position:absolute; background:#fff; padding:10px; border:1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.2); z-index:1000;">
@@ -61,7 +61,7 @@
 
 <br>
 <h4>Critical Path <span style="font-size: 10px;">(critical path nodes have no slack)</span></h4>
-<div  class="mermaid">
+<div  class="mermaid-schedule">
   <div id="critical-path">
 
   </div>
@@ -69,9 +69,38 @@
 
 <br>
 <h4>Tabular Form</h4>
+<table class="task-list ">
+    <thead class="table-light">
+      <tr>
+        <th>Task Activity</th>
+        <th>Description</th>
+        <th>ES (Earliest Start)</th>
+        <th>EF (Earliest Finish)</th>
+        <th>LS (Latest Start)</th>
+        <th>Lf (Latest Finish)</th>
+        <th>Slack (LS - ES) or (LF - EF)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in activities %}
+      <tr>
+        <td>{{item.name}}</td>
+        <td>{{item.description}}</td>
+        <td>{{item.es}}</td>
+        <td>{{item.ef}}</td>
+        <td>{{item.ls}}</td>
+        <td>{{item.lf}}</td>
 
-<div class="mermaid">
-  <canvas id="ganttChart"></canvas>
+        <td>{{item.slack}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+<br>
+<h4>Gantt Chart</h4>
+<div class="mermaid-schedule">
+  <canvas id="ganttChart" width="1000" height="400"></canvas>
 </div>
 
 
@@ -145,6 +174,7 @@
 {% block script %}
 
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
 
 <!----------------------- Network Diagram ----------------------->
 <script type="module">
@@ -209,149 +239,87 @@
 
 <!--------------------- Project Schedule Diagram ---------------->
 <script>
-  const project_ID = "{{ project.id }}";
+ const project_Id = "{{ project.id }}";
+  const diagram = document.getElementById('scheduleDiagram');
+  const container = document.getElementById("critical-path");
+
   document.addEventListener("DOMContentLoaded", async () => {
     
-    const res = await fetch(`/schedule-diagram/${project_ID}/`);
+    const res = await fetch(`/schedule-diagram/${project_Id}/`);
     const schedule_data = await res.json();
     const activities = schedule_data.activities;
     const connections = schedule_data.connections;
     const diagram_height = [];
   
-    const diagram = document.getElementById('diagram');
-  
-      // Create a dagre graph
-      const g = new dagre.graphlib.Graph();
-      g.setGraph({
-        rankdir: 'LR', // Left to Right layout
-        marginx: 20,
-        marginy: 20,
-      });
-      g.setDefaultEdgeLabel(() => ({}));
-  
-      // Add nodes with width & height
-      activities.forEach(({ id }) => {
-        g.setNode(id, { width: 100, height: 80 });
-      });
-  
-      // Add edges
-      connections.forEach(([fromId, toId]) => {
-        g.setEdge(fromId, toId);
-    
-      });
-  
-      // Compute the layout
-      dagre.layout(g);
-  
-      // Assign x,y from dagre to activities
-      activities.forEach(act => {
-        const node = g.node(act.id);
-        act.x = node.x - 50; 
-        act.y = node.y - 40; 
-        diagram_height.push(act.y);
 
-      });
+  const g = new dagre.graphlib.Graph();
+  g.setGraph({ rankdir: 'LR', marginx: 20, marginy: 20 });
+  g.setDefaultEdgeLabel(() => ({}));
 
-    
-    const maxHeight = Math.max(...diagram_height);
-    
-
-    // Set the height of the .mermaid container
-    document.querySelector('#diagram').style.height = `${maxHeight + 100}px`;
-  
-    // Render activity boxes
-    activities.forEach(({ id, name, es, ef, ls, lf, slack, critical, x, y }) => {
-      const box = document.createElement('div');
-      box.className = 'activity-box' + (critical ? ' critical' : '');
-      box.style.left = x + 'px';
-      box.style.top = y + 'px';
-      box.id =  id;
-      let content = '';
-
-      // Handle special cases for Start and End
-      if (id === 'Start') {
-        content = `
-          <div class="activity-name">Start</div>
-        `;
-        box.classList.add('start-node'); // optional: add specific class
-      } else if (id === 'End') {
-        content = `
-          <div class="activity-name">End</div>
-        `;
-        box.classList.add('end-node'); // optional: add specific class
-      } else {
-        // Default task box
-        content = `
-          <div class="blue-text">${es}</div>
-          <div class="activity-name">${name}</div>
-          <div class="blue-text">${ef}</div>
-          <div>${ls}</div>
-          <div>${lf}</div>
-        `;
-      }
-
-      box.innerHTML = content;
-
-    diagram.appendChild(box);
-  
-    addPsdNodeHoverHandlers();
-  
-    window.onload = function () {
-        
-  
-    connections.forEach(([fromId, toId]) => {
-          const from = document.getElementById(fromId);
-          const to = document.getElementById(toId);
-          if (from && to) {
-            new LeaderLine(from, to, {
-                color: 'orange',
-                size: 2,
-                startSocketGravity: [0, 0],
-                endSocketGravity: [0, 0],
-                endPlug: 'arrow3',
-                path: 'fluid',
-                dash: { animation: true }
-            });
-          } else {
-            console.warn(`Missing element: ${fromId} or ${toId}`);
-          }
-        });
-  
-    
-    
-    setTimeout(() => {
-      document.querySelectorAll('svg.leader-line').forEach((svg) => {
-        ['top'].forEach((prop) => {
-          
-          const value = parseFloat(svg.style[prop]);
-          
-          if (!isNaN(value)) {
-            svg.style[prop] = `${value}px`;
-          }
-        });
-      });
-    }, 100); 
-  };
-  
+  activities.forEach(({ id }) => {
+    g.setNode(id, { width: 100, height: 80 });
   });
 
+  connections.forEach(([fromId, toId]) => {
+    g.setEdge(fromId, toId);
+  });
+
+  dagre.layout(g);
+
+  activities.forEach(act => {
+    const node = g.node(act.id);
+    act.x = node.x - 50;
+    act.y = node.y - 40;
+    diagram_height.push(act.y);
+  });
+
+  // Render all nodes
+  activities.forEach(({ id, name, es, ef, ls, lf, slack, critical, x, y }) => {
+    const box = document.createElement('div');
+    box.className = 'activity-box' + (critical ? ' critical' : '');
+    box.style.left = x + 'px';
+    box.style.top = y + 'px';
+    box.id = id;
+
+    if (id === 'Start') {
+      box.innerHTML = `<div class="activity-name">Start</div>`;
+      box.classList.add('start-node');
+    } else if (id === 'End') {
+      box.innerHTML = `<div class="activity-name">End</div>`;
+      box.classList.add('end-node');
+    } else {
+      box.innerHTML = `
+        <div class="blue-text">${es}</div>
+        <div class="activity-name">${name}</div>
+        <div class="blue-text">${ef}</div>
+        <div>${ls}</div>
+        <div>${lf}</div>
+      `;
+    }
+
+    diagram.appendChild(box);
+  });
+
+  const maxHeight = Math.max(...diagram_height);
+  diagram.style.height = `${maxHeight + 100}px`;
+
+  // ✅ Define and then call
   const psdpopup = document.getElementById("psd-popup");
 
   function addPsdNodeHoverHandlers() {
-    const nodeData = schedule_data.node_data
+    const nodeData = schedule_data.node_data;
 
-    document.querySelectorAll("#diagram .activity-box").forEach(node => {
+    document.querySelectorAll("#scheduleDiagram .activity-box").forEach(node => {
       node.style.cursor = 'pointer';
 
       node.addEventListener("mouseover", event => {
         const dataId = node.id;
         const data = nodeData[dataId];
-        
+
         if (data) {
-          
           document.getElementById("psdpopup-title").innerText = data.title;
           document.getElementById("psdpopup-desc").innerText = `Depends on: ${data.description}`;
-          document.getElementById("psdpopup-duration").innerText =`Duration: ${data.duration}` ;
+          document.getElementById("psdpopup-duration").innerText = `Duration: ${data.duration}`;
 
           const rect = node.getBoundingClientRect();
           psdpopup.style.top = `${rect.top + window.scrollY + 20}px`;
@@ -365,11 +333,34 @@
       });
     });
   }
+
+  // ✅ Call after nodes are in DOM
+  addPsdNodeHoverHandlers();
+
+  // Draw lines
+  connections.forEach(([fromId, toId]) => {
+    const from = document.getElementById(fromId);
+    const to = document.getElementById(toId);
+    if (from && to) {
+      new LeaderLine(from, to, {
+        color: 'orange',
+        size: 2,
+        startSocketGravity: [0, 0],
+        endSocketGravity: [0, 0],
+        endPlug: 'arrow3',
+        path: 'fluid',
+        dash: { animation: true }
+      });
+    }
+  });
+
+
+
   // <!--------------- Critical Path ---------------------------------->
     
     const CriticalPath = schedule_data.critical_tasks;
     const duration = schedule_data.critical_path_duration;
-    const container = document.getElementById("critical-path");
+    
 
     CriticalPath.forEach((letter, index) => {
       // Create span for the letter
@@ -408,75 +399,58 @@
 
 
 <!-- ---------------------------Gantt Chart--------------------------->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-  const data = {
-  labels: [
-    'Confirm lead speaker & topic',
-    'Prepare brochure',
-    'Send letters to speakers',
-    'Get confirmation from speaker',
-    'Send Letters to participants',
-    'Obtain travel plans for speaker',
-    'Arrange for accommodation for speakers',
-    'Get handouts from speakers',
-    'Finalize registrations'
-  ],
-  datasets: [{
-    label: 'Tasks',
-    data: [
-      { x: [0, 8], y: 'Confirm lead speaker & topic' },
-      { x: [8, 24], y: 'Prepare brochure' },
-      { x: [26, 40], y: 'Send letters to speakers' },
-      { x: [40, 48], y: 'Get confirmation from speaker' },
-      { x: [48, 54], y: 'Send Letters to participants' },
-      { x: [54, 64], y: 'Obtain travel plans for speaker' },
-      { x: [64, 80], y: 'Arrange for accommodation for speakers' },
-      { x: [80, 88], y: 'Get handouts from speakers' },
-      { x: [88, 96], y: 'Finalize registrations' }
-    ],
-    backgroundColor: 'rgb(71, 145, 219)',
-    borderColor: 'rgb(71, 145, 219)',
-    borderWidth: 1,
-    barThickness: 20
-  }]
-};
+  const project_id = "{{ project.id }}";
+  function waitForCanvasAndRenderChart() {
+  const interval = setInterval(async () => {
+    const canvas = document.getElementById('ganttChart');
+    if (canvas) {
+      clearInterval(interval);
+      const ctx = canvas.getContext('2d');
 
-const config = {
-  type: 'bar',
-  data: data,
-  options: {
-    indexAxis: 'y',
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-     
-    },
-    scales: {
-      x: {
-        position: 'top',  // ✅ This puts the x-axis values at the top
-        min: 0,
-        max: 100,
-        ticks: {
-          stepSize: 4 
-        },
-        grid: {
-          color: '#bbdefb',
-          
+      const gantt_res = await fetch(`/gantt-chart/${project_id}/`);
+      const res_data = await gantt_res.json();
+
+      const data = {
+        labels: res_data.labels,
+        datasets: [{
+          label: 'Tasks',
+          data: res_data.data,
+          backgroundColor: 'rgb(71, 145, 219)',
+          borderColor: 'rgb(71, 145, 219)',
+          borderWidth: 1,
+          barThickness: 20
+        }]
+      };
+
+      const config = {
+        type: 'bar',
+        data,
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              position: 'top',
+              min: 0,
+              max: 50,
+              ticks: { stepSize: 4 },
+              grid: { color: '#bbdefb' }
+            },
+            y: { grid: { display: false } }
+          }
         }
-      },
-      y: {
-        grid: {
-          display: false
-        }
-      }
+      };
+
+      new Chart(ctx, config);
     }
-    
-  },
-};
+  }, 200);
+}
 
-const ctx = document.getElementById('ganttChart');
-new Chart(ctx, config);
+document.addEventListener("DOMContentLoaded", waitForCanvasAndRenderChart);
 </script>
 
 
