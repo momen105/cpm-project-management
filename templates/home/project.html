@@ -22,13 +22,18 @@
         {% for item in data %}
         <tr>
 
-            <td>{{item.id}}</td>
+            <td>{{ forloop.counter }}</td>
             <td>{{item.name}}</td>
             <td>{{item.created_at}}</td>
             <td >
                 <a class="action-button" href="{% url 'project_details' id=item.id %}"><i class="fa-regular fa-eye"></i></a>
-                <!-- <a class="action-button" href="{% url 'project_list' %}?id={{ item.id }}"><i class="fa-solid fa-trash"></i></a>
-                <a class="action-button" href="{% url 'project_list' %}?id={{ item.id }}"><i class="fa-solid fa-pen-to-square"></i></a> -->
+                <a  class="action-button me-1" data-bs-toggle="modal" data-bs-target="#editProjectModal" data-id="{{item.id}}" data-name="{{item.name}}">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+                <a  class="action-button btn-delete" data-id="{{item.id}}">
+                  <i class="fa-solid fa-trash"></i>
+              </a>
+
             </td>
         </tr>
         {% endfor %}
@@ -61,6 +66,75 @@
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="editProjectModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'project_list' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Project</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+           <input type="hidden" name="id" id="editProjectId">
+          <div class="mb-3">
+            <label class="form-label">Project Name</label>
+            <textarea class="form-control" name="name" id="editProjectName" rows="2" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+      let editModal = document.getElementById('editProjectModal');
+    editModal.addEventListener('show.bs.modal', function (event) {
+        let button = event.relatedTarget;  // যেই button modal open করেছে
+        let id = button.getAttribute('data-id');
+        let name = button.getAttribute('data-name');
+
+        // form fields এ value বসানো
+        document.getElementById('editProjectId').value = id;
+        document.getElementById('editProjectName').value = name;
+    });
+
+    document.querySelectorAll(".btn-delete").forEach(button => {
+    button.addEventListener("click", function(){
+        let projectId = this.getAttribute("data-id");
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This will permanently delete the project!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/projects/${projectId}/`, {
+                    method: "DELETE",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    }
+                }).then(res => res.json())
+                .then(data => {
+                    if(data.success){
+                        Swal.fire("Deleted!", "Task has been deleted.", "success")
+                        .then(() => location.reload());
+                    }
+                });
+            }
+        })
+    });
+});
+</script>
 
 {% endblock component %}
 

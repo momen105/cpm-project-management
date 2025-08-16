@@ -15,31 +15,60 @@ class ProjectDetailsView(View):
     def  post(self, request, *args, **kwargs):
         project_id = kwargs.get('id')
         data = request.POST.copy()
-        data['project'] = project_id
-        if data.get("predecessors") == "":
-            data.pop("predecessors")
-            
-        form = TaskForm(data)
-        if form.is_valid():
-            form.save()
-            return redirect('project_details', id=project_id)
+        if task_id:= data.get("task_id"):
+            data['project'] = project_id
+            if data.get("predecessors") == "":
+                data.pop("predecessors")
+
+            task_obj = get_object_or_404(Task, pk=task_id)
+            form = TaskForm(data, instance=task_obj)
+            if form.is_valid():
+                form.save()
+                return redirect('project_details', id=project_id)
         else:
-            print(form.errors)
+            data['project'] = project_id
+            if data.get("predecessors") == "":
+                data.pop("predecessors")
+                
+            form = TaskForm(data)
+            if form.is_valid():
+                form.save()
+                return redirect('project_details', id=project_id)
+        
         return redirect('project_details', id=project_id)
+    
+    def delete(self, request, id):
+        project = get_object_or_404(Task, pk=id)
+        project.delete()
+        return JsonResponse({"success": True})
+    
     
 
 class ProjectView(View):
     def get(self, request):
         form = ProjectForm()
-        data = ProjectModel.objects.all()
+        data = ProjectModel.objects.all().order_by("-id")
         return render(request, 'home/project.html', {'form': form,'data':data})
 
     def post(self, request):
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('project_list')
+        data = request.POST
+        if id:= data.get("id"):
+            project = get_object_or_404(ProjectModel, pk=id)
+            form = ProjectForm(request.POST, instance=project)
+            if form.is_valid():
+                form.save()
+        else:
+            form = ProjectForm(data)
+            if form.is_valid():
+                form.save()
+                return redirect('project_list')
         return redirect('project_list')
+    
+
+    def delete(self, request, id):
+        project = get_object_or_404(Task, pk=id)
+        project.delete()
+        return JsonResponse({"success": True})
     
 
 def task_data(request):
