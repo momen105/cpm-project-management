@@ -165,9 +165,9 @@ def generate_Schedule_Diagram(project_id):
   
     # Optional: Get sorted critical tasks
     critical_tasks = sorted(
-        [task["id"] for task in activities if task["critical"] and task["id"] != "End"],
-        key=lambda tid: task_map[tid]["es"]
-    )
+    [task["id"] for task in activities if task["critical"] and task["id"] != "End"],
+    key=lambda tid: (tid != "Start", task_map[tid]["es"])
+)
     return activities, connections,critical_path_duration, critical_tasks,node_data
 
 

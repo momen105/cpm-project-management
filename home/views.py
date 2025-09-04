@@ -4,6 +4,10 @@ from .models import Task
 from .forms import *
 from django.http import JsonResponse
 from home.diagram import *
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login,logout
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 class ProjectDetailsView(View):
     def get(self, request, id):
         project = get_object_or_404(ProjectModel, pk=id)
@@ -44,7 +48,9 @@ class ProjectDetailsView(View):
     
     
 
-class ProjectView(View):
+class ProjectView(LoginRequiredMixin,View):
+    login_url = '/login/' 
+
     def get(self, request):
         form = ProjectForm()
         data = ProjectModel.objects.all().order_by("-id")
@@ -92,7 +98,7 @@ def get_network_diagram(request, project_id):
 def get_generate_Schedule_Diagram(request, project_id):
 
     activities,connections,critical_path_duration, critical_tasks,node_data = generate_Schedule_Diagram(project_id)
- 
+    print(critical_tasks)
     return JsonResponse({
         "activities": activities,
         "connections": connections,
@@ -109,3 +115,23 @@ def get_gantt_chart_data(request, project_id):
         "labels": labels,
         "data": data
     })
+
+
+
+def signup_view(request):
+    if request.method == "POST":
+        print(request.POST)
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("/")
+        print(form.errors)
+    else:
+        form = CustomUserCreationForm()
+    return render(request, "signup.html", {"form": form})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("login") 

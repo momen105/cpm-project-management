@@ -329,6 +329,9 @@
  const project_Id = "{{ project.id }}";
   const diagram = document.getElementById('scheduleDiagram');
   const container = document.getElementById("critical-path");
+  container.addEventListener("scroll", () => {
+  LeaderLine.position();
+});
 
   document.addEventListener("DOMContentLoaded", async () => {
     
@@ -426,6 +429,7 @@
 
   // Draw lines
   connections.forEach(([fromId, toId]) => {
+    console.log(fromId)
     const from = document.getElementById(fromId);
     const to = document.getElementById(toId);
     if (from && to) {
@@ -436,7 +440,8 @@
         endSocketGravity: [0, 0],
         endPlug: 'arrow3',
         path: 'fluid',
-        dash: { animation: true }
+        dash: { animation: true },
+      
       });
     }
   });

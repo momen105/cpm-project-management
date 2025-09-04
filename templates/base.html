@@ -171,6 +171,7 @@
   }
   #scheduleDiagram{
     position: relative;
+    /* overflow-x: scroll; */
   }
   .activity-box:hover {
     box-shadow: 0 0 10px rgba(0,0,0,0.2);
@@ -256,6 +257,9 @@
     .select2-container--default .select2-selection--multiple{
      width: 220px;
     }
+
+    /* -----------------auth-------------------------------- */
+
   </style>
 </head>
 <body>
@@ -288,7 +292,7 @@
         </a>
         <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser">
             <li>
-            <a class="dropdown-item d-flex align-items-center" href="#">
+            <a class="dropdown-item d-flex align-items-center" href="{% url 'logout' %}">
                  Logout
             </a>
             </li>
@@ -300,7 +304,7 @@
 </nav>
 
 <!-- Content Block -->
-<div class="container my-4">
+<div class="container my-4" style="width: max-content;">
   {% block component %}{% endblock %}
 </div>
 
