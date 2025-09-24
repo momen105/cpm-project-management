@@ -72,7 +72,7 @@ class ProjectView(LoginRequiredMixin,View):
     
 
     def delete(self, request, id):
-        project = get_object_or_404(Task, pk=id)
+        project = get_object_or_404(ProjectModel, pk=id)
         project.delete()
         return JsonResponse({"success": True})
     
@@ -98,7 +98,6 @@ def get_network_diagram(request, project_id):
 def get_generate_Schedule_Diagram(request, project_id):
 
     activities,connections,critical_path_duration, critical_tasks,node_data = generate_Schedule_Diagram(project_id)
-    print(critical_tasks)
     return JsonResponse({
         "activities": activities,
         "connections": connections,
@@ -120,13 +119,11 @@ def get_gantt_chart_data(request, project_id):
 
 def signup_view(request):
     if request.method == "POST":
-        print(request.POST)
+        
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
             return redirect("/")
-        print(form.errors)
     else:
         form = CustomUserCreationForm()
     return render(request, "signup.html", {"form": form})
